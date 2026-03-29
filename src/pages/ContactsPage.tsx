@@ -149,8 +149,6 @@ export default function ContactsPage() {
         loading={deleting}
       />
 
-        loading={deleting}
-      />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="w-full sm:max-w-sm flex-1">
