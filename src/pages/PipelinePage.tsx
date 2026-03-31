@@ -123,6 +123,47 @@ export default function PipelinePage() {
 
     toast.success(`Moved to ${destStage}`)
     void createNotification('stage_change', `Deal "${movingDeal.contact_name}" moved to ${destStage}`)
+
+    // Fetch contact details for webhook
+    let contactId = 'Unknown'
+    let contactEmail = 'Unknown'
+    try {
+      const { data: contactData } = await supabase
+        .from('contacts')
+        .select('id, email')
+        .ilike('name', `%${movingDeal.contact_name}%`)
+        .limit(1)
+        .single()
+        
+      if (contactData) {
+        contactId = contactData.id
+        contactEmail = contactData.email || 'Unknown'
+      }
+    } catch {
+      // Ignore if not found
+    }
+
+    const webhookUrl = import.meta.env.VITE_N8N_STAGE_CHANGE_WEBHOOK
+    if (webhookUrl) {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deal_id: movingDeal.id,
+            deal_title: movingDeal.contact_name,
+            contact_id: contactId,
+            contact_name: movingDeal.contact_name,
+            contact_email: contactEmail,
+            old_stage: movingDeal.stage,
+            new_stage: destStage,
+            deal_value: movingDeal.value,
+          }),
+        })
+      } catch (err) {
+        console.error('Failed to trigger n8n stage change webhook:', err)
+      }
+    }
   }
 
   return (

@@ -117,12 +117,31 @@ export default function ContactsPage() {
       return
     }
 
-    const { error } = await supabase.from('contacts').insert(payload)
+    const { data, error } = await supabase.from('contacts').insert(payload).select().single()
     setSaving(false)
     if (error) { toast.error(error.message); return }
 
     toast.success('Contact added!')
     void createNotification('contact', `New contact "${form.name.trim()}" was added`)
+
+    const newContact = data as Contact
+    const webhookUrl = import.meta.env.VITE_N8N_NEW_LEAD_WEBHOOK
+    if (webhookUrl) {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newContact.name,
+            email: newContact.email || '',
+            contact_id: newContact.id,
+          }),
+        })
+      } catch (err) {
+        console.error('Failed to trigger n8n new lead webhook:', err)
+      }
+    }
+
     closeDrawer()
     void fetchContacts()
   }
