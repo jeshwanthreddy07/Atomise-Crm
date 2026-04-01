@@ -9,6 +9,36 @@ import EmptyState from '../components/EmptyState'
 import { createNotification } from '../hooks/useNotifications'
 import { useEscapeKey } from '../hooks/useEscapeKey'
 
+async function triggerStageChangeWebhook(payload: {
+  deal_id: string
+  deal_title: string
+  deal_value: number
+  contact_id: string | null
+  contact_name: string
+  contact_email: string
+  old_stage: string
+  new_stage: string
+}) {
+  const webhookUrl = import.meta.env.VITE_N8N_STAGE_CHANGE_WEBHOOK
+  if (!webhookUrl) {
+    console.warn('VITE_N8N_STAGE_CHANGE_WEBHOOK not set')
+    return
+  }
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...payload,
+        owner_email: 'admin@atomise.ai'
+      })
+    })
+    console.log('✅ n8n stage change webhook fired:', payload.old_stage, '→', payload.new_stage)
+  } catch (err) {
+    console.warn('Stage change webhook failed (non-critical):', err)
+  }
+}
+
 type Deal = {
   id: string; user_id: string; contact_name: string; value: number | null;
   stage: DealStage; assigned_to: string | null; created_at: string
@@ -124,9 +154,9 @@ export default function PipelinePage() {
     toast.success(`Moved to ${destStage}`)
     void createNotification('stage_change', `Deal "${movingDeal.contact_name}" moved to ${destStage}`)
 
-    // Fetch contact details for webhook
-    let contactId = 'Unknown'
-    let contactEmail = 'Unknown'
+    // Custom lookup since Deals doesn't store contact_id/email natively
+    let contactId = null
+    let contactEmail = ''
     try {
       const { data: contactData } = await supabase
         .from('contacts')
@@ -137,33 +167,22 @@ export default function PipelinePage() {
         
       if (contactData) {
         contactId = contactData.id
-        contactEmail = contactData.email || 'Unknown'
+        contactEmail = contactData.email || ''
       }
     } catch {
       // Ignore if not found
     }
 
-    const webhookUrl = import.meta.env.VITE_N8N_STAGE_CHANGE_WEBHOOK
-    if (webhookUrl) {
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            deal_id: movingDeal.id,
-            deal_title: movingDeal.contact_name,
-            contact_id: contactId,
-            contact_name: movingDeal.contact_name,
-            contact_email: contactEmail,
-            old_stage: movingDeal.stage,
-            new_stage: destStage,
-            deal_value: movingDeal.value,
-          }),
-        })
-      } catch (err) {
-        console.error('Failed to trigger n8n stage change webhook:', err)
-      }
-    }
+    await triggerStageChangeWebhook({
+      deal_id: draggableId,
+      deal_title: movingDeal.contact_name, // Mapping movedDeal.title to context's movingDeal.contact_name
+      deal_value: movingDeal.value || 0,
+      contact_id: contactId,
+      contact_name: movingDeal.contact_name, // Mapping movedDeal.contacts?.full_name to custom lookup/local value
+      contact_email: contactEmail,
+      old_stage: source.droppableId as string,
+      new_stage: destination.droppableId as string
+    })
   }
 
   return (

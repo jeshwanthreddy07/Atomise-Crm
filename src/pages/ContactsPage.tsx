@@ -12,6 +12,31 @@ import { createNotification } from '../hooks/useNotifications'
 import CsvImportModal from '../components/CsvImportModal'
 import { useEscapeKey } from '../hooks/useEscapeKey'
 
+async function triggerNewLeadWebhook(contact: any) {
+  const webhookUrl = import.meta.env.VITE_N8N_NEW_LEAD_WEBHOOK
+  if (!webhookUrl) {
+    console.warn('VITE_N8N_NEW_LEAD_WEBHOOK not set')
+    return
+  }
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contact_id: contact.id,
+        full_name: contact.name,
+        email: contact.email || '',
+        company: contact.company || '',
+        phone: contact.phone || '',
+        owner_email: 'admin@atomise.ai'
+      })
+    })
+    console.log('✅ n8n new lead webhook fired')
+  } catch (err) {
+    console.warn('New lead webhook failed (non-critical):', err)
+  }
+}
+
 type Contact = {
   id: string
   user_id: string
@@ -124,23 +149,7 @@ export default function ContactsPage() {
     toast.success('Contact added!')
     void createNotification('contact', `New contact "${form.name.trim()}" was added`)
 
-    const newContact = data as Contact
-    const webhookUrl = import.meta.env.VITE_N8N_NEW_LEAD_WEBHOOK
-    if (webhookUrl) {
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: newContact.name,
-            email: newContact.email || '',
-            contact_id: newContact.id,
-          }),
-        })
-      } catch (err) {
-        console.error('Failed to trigger n8n new lead webhook:', err)
-      }
-    }
+    if (data && !error) await triggerNewLeadWebhook(data)
 
     closeDrawer()
     void fetchContacts()
