@@ -16,6 +16,7 @@ const pageResults: SearchResult[] = [
   { id: 'page-contacts', label: 'Contacts', sub: 'Manage contacts', type: 'page', href: '/contacts' },
   { id: 'page-pipeline', label: 'Pipeline', sub: 'View deals', type: 'page', href: '/pipeline' },
   { id: 'page-tasks', label: 'Tasks', sub: 'Manage tasks', type: 'page', href: '/tasks' },
+  { id: 'page-appointments', label: 'Appointments', sub: 'Schedule meetings & calls', type: 'page', href: '/appointments' },
   { id: 'page-reports', label: 'Reports', sub: 'Analytics & reports', type: 'page', href: '/reports' },
   { id: 'page-settings', label: 'Settings', sub: 'User settings', type: 'page', href: '/settings' },
 ]

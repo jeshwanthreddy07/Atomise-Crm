@@ -44,6 +44,28 @@
   --radius-xl: 24px;
 }
 
+/* ─── Light Theme ─── */
+[data-theme="light"] {
+  --brand-glow: rgba(124, 58, 237, 0.08);
+
+  --bg-base: #F8F9FB;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F3F4F6;
+  --bg-hover: #E5E7EB;
+  --bg-border: #D1D5DB;
+
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+
+  --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F3F4F6 100%);
+  --gradient-glow: radial-gradient(ellipse at top, rgba(124,58,237,0.06) 0%, transparent 70%);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+  --shadow-brand: 0 0 20px rgba(124,58,237,0.12);
+}
+
 @layer base {
   body {
     font-family: 'Inter', sans-serif;
@@ -59,7 +81,7 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #27272A #111113;
+    scrollbar-color: var(--bg-border) var(--bg-surface);
   }
 
   *::-webkit-scrollbar {

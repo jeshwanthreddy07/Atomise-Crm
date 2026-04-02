@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Moon, Sun } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import { useTheme } from '../hooks/useTheme'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     document.title = 'Login — Atomise CRM'
@@ -38,9 +40,20 @@ export default function LoginPage() {
 
   return (
     <div
-      className="flex min-h-screen animate-fade-in-page items-center justify-center px-4"
+      className="relative flex min-h-screen animate-fade-in-page items-center justify-center px-4"
       style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
     >
+      {/* Theme toggle */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="absolute right-4 top-4 rounded-lg p-2.5 transition hover:bg-white/5"
+        style={{ color: 'var(--text-secondary)', border: '1px solid var(--bg-border)' }}
+        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
+
       <div
         className="login-card-glow w-full max-w-md p-8"
         style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)' }}
@@ -104,18 +117,6 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-          </div>
-
-          <div
-            className="rounded-lg p-3 text-center text-sm my-4"
-            style={{
-              background: 'var(--bg-hover)',
-              color: 'var(--text-secondary)',
-              border: '1px dashed var(--bg-border)'
-            }}
-          >
-            <p className="font-semibold mb-1">Demo Credentials</p>
-            <p className="font-mono text-xs">admin@atomise.ai / Admin1234!</p>
           </div>
 
           <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3">

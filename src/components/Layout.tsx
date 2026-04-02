@@ -1,20 +1,23 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import {
   BarChart3,
+  Calendar,
   CheckSquare,
   Kanban,
   LayoutDashboard,
   Menu,
+  Moon,
   Settings,
+  Sun,
   X,
   Users,
 } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
-// Logo removed per user request
 import NotificationBell from './NotificationBell'
 import CommandPalette from './CommandPalette'
 import { getUserInitials } from '../lib/utils'
+import { useTheme } from '../hooks/useTheme'
 
 type LayoutProps = {
   user: User
@@ -27,6 +30,7 @@ const navItems = [
   { to: '/pipeline', label: 'Pipeline', icon: Kanban },
   { to: '/reports', label: 'Reports', icon: BarChart3 },
   { to: '/tasks', label: 'Tasks', icon: CheckSquare },
+  { to: '/appointments', label: 'Appointments', icon: Calendar },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -36,6 +40,7 @@ const pageTitleMap: Record<string, string> = {
   '/pipeline': 'Pipeline',
   '/reports': 'Reports',
   '/tasks': 'Tasks',
+  '/appointments': 'Appointments',
   '/settings': 'Settings',
 }
 
@@ -57,6 +62,7 @@ export default function Layout({ user, children }: LayoutProps) {
     year: 'numeric',
   })
   const initials = getUserInitials(user)
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     document.title = `${pageTitle} — Atomise CRM`
@@ -148,11 +154,20 @@ export default function Layout({ user, children }: LayoutProps) {
           })}
         </nav>
 
-        {/* User pill */}
+        {/* Theme toggle + User pill */}
         <div
           className="flex items-center gap-3 pt-4"
           style={{ borderTop: '1px solid var(--bg-border)' }}
         >
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-white/10"
+            style={{ color: 'var(--text-secondary)' }}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           <div
             className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white"
             style={{ background: 'var(--brand-primary)' }}
@@ -233,7 +248,7 @@ export default function Layout({ user, children }: LayoutProps) {
           borderTop: '1px solid var(--bg-border)',
         }}
       >
-        {navItems.slice(0, 5).map((item) => {
+        {navItems.slice(0, 6).map((item) => {
           const Icon = item.icon
           return (
             <NavLink key={item.to} to={item.to}>
@@ -273,6 +288,15 @@ export default function Layout({ user, children }: LayoutProps) {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded-lg p-2 transition hover:bg-white/5"
+              style={{ color: 'var(--text-secondary)' }}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <NotificationBell />
             <p className="hidden text-sm md:block" style={{ color: 'var(--text-secondary)' }}>{today}</p>
           </div>

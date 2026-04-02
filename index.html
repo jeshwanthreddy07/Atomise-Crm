@@ -38,6 +38,10 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Apply saved theme before React renders to prevent flash
+      (function(){var t=localStorage.getItem('atomise-theme');if(!t){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}document.documentElement.setAttribute('data-theme',t)})();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
